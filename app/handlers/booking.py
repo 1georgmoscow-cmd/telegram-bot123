@@ -23,20 +23,30 @@ def _month_range() -> tuple[str, str]:
 
 
 async def _show_calendar(callback: CallbackQuery, db: Database, month_offset: int = 0) -> None:
-    start_date, end_date = _month_range()
-    available_days = set(db.get_month_work_days(start_date, end_date))
-    if not available_days:
-        await callback.message.edit_text(
-            "Пока нет доступных рабочих дней на ближайший месяц.",
-            reply_markup=back_to_menu_kb(),
-        )
-        return
+    try:
+        start_date, end_date = _month_range()
 
-    await callback.message.edit_text(
-        "<b>Выберите дату записи</b>",
-        parse_mode="HTML",
-        reply_markup=month_calendar_kb(available_days, month_offset=month_offset),
-    )
+        days = db.get_month_work_days(start_date, end_date)
+        print("DAYS FROM DB:", days)
+
+        if not days:
+            await callback.message.answer(
+                "Пока нет доступных рабочих дней на ближайший месяц.",
+                reply_markup=back_to_menu_kb(),
+            )
+            return
+
+        available_days = set(days)
+
+        await callback.message.answer(
+            "<b>Выберите дату записи</b>",
+            parse_mode="HTML",
+            reply_markup=month_calendar_kb(available_days, month_offset=month_offset),
+        )
+
+    except Exception as e:
+        print("CALENDAR ERROR:", e)
+        await callback.message.answer("Ошибка при загрузке календаря 😢")
 
 
 @router.callback_query(StateFilter(None), F.data == "start_booking")
