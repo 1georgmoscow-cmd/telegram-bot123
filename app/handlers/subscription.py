@@ -16,9 +16,10 @@ async def check_subscription(
 ) -> None:
     subscribed = await is_subscribed(bot, settings.channel_id, callback.from_user.id)
     if not subscribed:
-        await callback.message.edit_text(
-            "Для записи необходимо подписаться на канал",
-            reply_markup=subscription_kb(settings.channel_link),
+        await callback.message.answer(
+    "Для записи необходимо подписаться на канал",
+    reply_markup=subscription_kb(settings.channel_link),
+
         )
         await callback.answer("Подписка не найдена", show_alert=True)
         return
